@@ -49,4 +49,31 @@ describe("ReplicateProvider", () => {
     const p = new ReplicateProvider();
     await expect(p.generateAnchor([], "x")).rejects.toThrow(/REPLICATE_API_TOKEN/);
   });
+
+  it("editRoom with mask runs inpainting model", async () => {
+    process.env.REPLICATE_API_TOKEN = "test";
+    run.mockResolvedValueOnce(["https://cdn.example/edit.png"]);
+    const p = new ReplicateProvider();
+    const out = await p.editRoom(
+      { bytes: Buffer.from("base"), mime: "image/png" },
+      Buffer.from("mask"),
+      "green sofa"
+    );
+    expect(out.bytes.toString()).toBe("rep-bytes");
+    const args = run.mock.calls.at(-1)![1] as any;
+    expect(args.input.mask).toContain(Buffer.from("mask").toString("base64"));
+    expect(args.input.image).toContain(Buffer.from("base").toString("base64"));
+  });
+
+  it("editRoom without mask still runs (img2img fallback)", async () => {
+    process.env.REPLICATE_API_TOKEN = "test";
+    run.mockResolvedValueOnce(["https://cdn.example/edit.png"]);
+    const p = new ReplicateProvider();
+    const out = await p.editRoom(
+      { bytes: Buffer.from("base"), mime: "image/png" },
+      null,
+      "more minimal"
+    );
+    expect(out.bytes.toString()).toBe("rep-bytes");
+  });
 });

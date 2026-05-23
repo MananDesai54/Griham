@@ -5,6 +5,8 @@ import { MissingApiKeyError } from "./index";
 import { pickAnchorRoomByLabel } from "../style";
 
 const MODEL = "lucataco/sdxl-ip-adapter" as `${string}/${string}`;
+// TODO: pin a specific version hash before production use.
+const INPAINT_MODEL = "lucataco/sdxl-inpainting" as `${string}/${string}`;
 
 function client() {
   const auth = process.env.REPLICATE_API_TOKEN;
@@ -65,7 +67,16 @@ export class ReplicateProvider implements DesignProvider {
     return downloadImage(asUrl(out));
   }
 
-  async editRoom(_base: ImageOut, _mask: Buffer | null, _instruction: string): Promise<ImageOut> {
-    throw new Error("not implemented");
+  async editRoom(base: ImageOut, mask: Buffer | null, instruction: string): Promise<ImageOut> {
+    const r = client();
+    const input: Record<string, unknown> = {
+      prompt: instruction,
+      image: dataUri(base.bytes, base.mime),
+      width: 1024,
+      height: 1024,
+    };
+    if (mask) input.mask = dataUri(mask, "image/png");
+    const out = await r.run(INPAINT_MODEL, { input });
+    return downloadImage(asUrl(out));
   }
 }
