@@ -28,8 +28,20 @@ bun test
 
 > Tests run via Vitest under Bun (`bun x vitest`).
 
+## 3D
+
+Per-design mesh via Meshy AI. Set `MESHY_API_KEY` then click **Generate 3D** on any ready design. Polls every 5s; view in three.js modal when ready.
+
 ## Scope
 
-S1 (this version): upload + 2D generation with style anchor.
-S2 (next): chat + mask edits.
-S3 (later): 2D → 3D mesh viewer.
+- **S1** (shipped): upload + 2D generation with style anchor.
+- **S2** (shipped): chat + paint-mask edits, version chain navigation.
+- **S3** (shipped): per-design 3D mesh via Meshy + three.js viewer.
+
+## Smoke
+
+After setup:
+
+1. Create project, upload at least 2 rooms (one labeled "living room"), generate designs.
+2. Click **Edit** on a ready design. Paint a small region, type an instruction, apply. Confirm new version appears and ← → arrows navigate.
+3. Click **Generate 3D** on any ready design. Wait 1-3 min. When button flips to **View 3D**, click it. Modal opens with orbitable mesh.
