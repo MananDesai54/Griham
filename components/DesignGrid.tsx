@@ -1,6 +1,8 @@
 "use client";
 import { useMemo, useState } from "react";
 import { DesignEditor } from "./DesignEditor";
+import { MeshButton } from "./MeshButton";
+import { MeshViewer } from "./MeshViewer";
 
 type Room = { id: string; label: string; source_blob_id: string };
 type Design = { id: string; room_id: string; blob_id: string | null; status: "pending" | "ready" | "failed"; error: string | null; parent_design_id: string | null };
@@ -31,6 +33,7 @@ function chainFor(roomId: string, designs: Design[]): Design[] {
 
 export function DesignGrid({ rooms, designs }: { rooms: Room[]; designs: Design[] }) {
   const [editing, setEditing] = useState<{ id: string; src: string } | null>(null);
+  const [viewing, setViewing] = useState<string | null>(null);
   const chains = useMemo(() => {
     const m = new Map<string, Design[]>();
     for (const r of rooms) m.set(r.id, chainFor(r.id, designs));
@@ -71,6 +74,7 @@ export function DesignGrid({ rooms, designs }: { rooms: Room[]; designs: Design[
               {current?.status === "ready" && current.blob_id && (
                 <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                   <button onClick={() => setEditing({ id: current.id, src: `/api/blobs/${current.blob_id}` })}>Edit</button>
+                  <MeshButton designId={current.id} onView={url => setViewing(url)} />
                 </div>
               )}
             </div>
@@ -78,6 +82,7 @@ export function DesignGrid({ rooms, designs }: { rooms: Room[]; designs: Design[
         })}
       </div>
       {editing && <DesignEditor designId={editing.id} src={editing.src} onClose={() => setEditing(null)} />}
+      {viewing && <MeshViewer glbUrl={viewing} onClose={() => setViewing(null)} />}
     </>
   );
 }
