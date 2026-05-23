@@ -30,6 +30,7 @@ describe("designs.generate", () => {
     // Reset globalThis singleton so each test gets a fresh DB
     (globalThis as any).__griham_db = undefined;
     vi.resetModules();
+    vi.clearAllMocks();
     ({ POST } = await import("../app/api/designs/generate/route"));
   });
 
@@ -84,7 +85,7 @@ describe("designs.generate", () => {
     db.prepare("UPDATE rooms SET label='kitchen' WHERE id='rx'").run();
     const req2 = new Request("http://x", { method: "POST", body: JSON.stringify({ project_id: "p2" }), headers: { "content-type": "application/json" } });
     await POST(req2 as any);
-    d = db.prepare("SELECT status FROM designs WHERE room_id='rx' ORDER BY created_at DESC").get() as any;
+    d = db.prepare("SELECT status FROM designs WHERE room_id='rx' ORDER BY created_at DESC, id DESC").get() as any;
     expect(d.status).toBe("ready");
   });
 });
