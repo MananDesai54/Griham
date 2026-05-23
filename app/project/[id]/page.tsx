@@ -13,7 +13,7 @@ export default async function ProjectPage({ params }: { params: Promise<{ id: st
   if (!project) notFound();
   const rooms = db.prepare("SELECT id, label, source_blob_id FROM rooms WHERE project_id=? ORDER BY created_at").all(id) as any[];
   const designs = db.prepare(
-    `SELECT d.id, d.room_id, d.blob_id, d.status, d.error
+    `SELECT d.id, d.room_id, d.blob_id, d.status, d.error, d.parent_design_id
      FROM designs d JOIN rooms r ON r.id=d.room_id WHERE r.project_id=? ORDER BY d.created_at`
   ).all(id) as any[];
 
