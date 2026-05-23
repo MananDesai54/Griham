@@ -1,5 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
+import { Loader2, AlertCircle } from "lucide-react";
 import { DesignEditor } from "./DesignEditor";
 import { MeshButton } from "./MeshButton";
 import { MeshViewer } from "./MeshViewer";
@@ -69,7 +70,7 @@ export function DesignGrid({
 
   return (
     <>
-      <div className="grid grid-cols-[repeat(auto-fill,minmax(340px,1fr))] gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
         {rooms.map((r) => {
           const chain = chains.get(r.id) ?? [];
           const idx = Math.min(
@@ -79,7 +80,10 @@ export function DesignGrid({
           const current = chain[idx];
 
           return (
-            <Card key={r.id} className="overflow-hidden">
+            <Card
+              key={r.id}
+              className="overflow-hidden transition-colors hover:border-[var(--color-ring)]"
+            >
               <CardContent className="p-4">
                 <div className="font-serif font-semibold text-lg mb-3 text-[var(--color-foreground)]">
                   {r.label}
@@ -114,12 +118,24 @@ export function DesignGrid({
                     )}
                     {current?.status === "pending" && (
                       <div className="w-full aspect-[4/3] rounded-md bg-[var(--color-muted)] flex items-center justify-center">
-                        <Badge variant="warning">Generating…</Badge>
+                        <Badge
+                          variant="warning"
+                          className="flex items-center gap-1.5 animate-pulse"
+                        >
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          Generating…
+                        </Badge>
                       </div>
                     )}
                     {current?.status === "failed" && (
                       <div className="w-full aspect-[4/3] rounded-md bg-[var(--color-muted)] flex flex-col items-center justify-center gap-1 px-2">
-                        <Badge variant="error">Failed</Badge>
+                        <Badge
+                          variant="error"
+                          className="flex items-center gap-1"
+                        >
+                          <AlertCircle className="h-3 w-3" />
+                          Failed
+                        </Badge>
                         {current.error && (
                           <p className="text-xs text-[var(--color-muted-foreground)] text-center line-clamp-2">
                             {current.error}

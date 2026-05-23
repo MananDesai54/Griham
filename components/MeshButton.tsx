@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { toast } from "sonner";
 import { Loader, Box, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -35,9 +36,12 @@ export function MeshButton({
     });
     const body = await res.json().catch(() => ({}));
     if (!res.ok) {
-      setState({ kind: "failed", error: body.error ?? "failed" });
+      const errMsg = body.error ?? "failed";
+      setState({ kind: "failed", error: errMsg });
+      toast.error(`3D failed: ${errMsg}`);
       return;
     }
+    toast.success("3D generation started");
     setState({ kind: "pending", meshId: body.mesh_id });
     schedulePoll(body.mesh_id);
   }
@@ -54,7 +58,9 @@ export function MeshButton({
       return;
     }
     if (body.status === "failed") {
-      setState({ kind: "failed", error: body.error ?? "failed" });
+      const errMsg = body.error ?? "failed";
+      setState({ kind: "failed", error: errMsg });
+      toast.error(`3D failed: ${errMsg}`);
       return;
     }
     schedulePoll(meshId);

@@ -6,22 +6,13 @@ import { Badge } from "@/components/ui/badge";
 type Project = { id: string; name: string; provider: string; created_at: number };
 
 export function ProjectList({ projects }: { projects: Project[] }) {
-  if (projects.length === 0) {
-    return (
-      <p className="text-center text-[var(--color-muted-foreground)] py-8">
-        No projects yet. Create one above to get started.
-      </p>
-    );
-  }
+  if (projects.length === 0) return null;
 
   return (
-    <div className="space-y-3">
-      <h2 className="font-serif text-lg font-semibold text-[var(--color-foreground)] mb-4">
-        Your projects
-      </h2>
+    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
       {projects.map((p) => (
         <Link key={p.id} href={`/project/${p.id}`} className="block group">
-          <Card className="transition-shadow hover:shadow-md">
+          <Card className="transition-all duration-200 hover:shadow-md hover:border-[var(--color-ring)]">
             <CardContent className="p-4 flex items-center justify-between">
               <span className="font-medium text-[var(--color-foreground)] group-hover:text-[var(--color-primary)] transition-colors">
                 {p.name}

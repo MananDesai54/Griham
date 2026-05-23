@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { MaskCanvas, type MaskCanvasHandle } from "./MaskCanvas";
 import {
   Dialog,
@@ -27,31 +28,35 @@ export function DesignEditor({
   const [instruction, setInstruction] = useState("");
   const [brush, setBrush] = useState(20);
   const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
 
   async function apply() {
     if (!instruction.trim()) {
-      setErr("instruction required");
+      toast.error("Instruction required");
       return;
     }
     setBusy(true);
-    setErr(null);
-    const fd = new FormData();
-    fd.set("instruction", instruction);
-    const mask = await canvasRef.current?.exportMask();
-    if (mask) fd.set("mask", mask, "mask.png");
-    const res = await fetch(`/api/designs/${designId}/edit`, {
-      method: "POST",
-      body: fd,
-    });
-    setBusy(false);
-    if (!res.ok) {
-      const j = await res.json().catch(() => ({}));
-      setErr(j.error ?? "failed");
-      return;
+    try {
+      const fd = new FormData();
+      fd.set("instruction", instruction);
+      const mask = await canvasRef.current?.exportMask();
+      if (mask) fd.set("mask", mask, "mask.png");
+      const res = await fetch(`/api/designs/${designId}/edit`, {
+        method: "POST",
+        body: fd,
+      });
+      if (res.ok) {
+        toast.success("Edit applied");
+        onClose();
+        router.refresh();
+      } else {
+        const j = await res.json().catch(() => ({}));
+        toast.error(j.error ?? "Edit failed");
+      }
+    } catch {
+      toast.error("Edit failed");
+    } finally {
+      setBusy(false);
     }
-    onClose();
-    router.refresh();
   }
 
   return (
@@ -97,18 +102,11 @@ export function DesignEditor({
           className="mt-3"
         />
 
-        {err && (
-          <p className="text-sm text-[var(--color-destructive)] mt-2">{err}</p>
-        )}
-
         <div className="flex gap-3 justify-end mt-4">
           <Button variant="outline" onClick={onClose} disabled={busy}>
             Cancel
           </Button>
-          <Button
-            onClick={apply}
-            disabled={busy || !instruction.trim()}
-          >
+          <Button onClick={apply} disabled={busy || !instruction.trim()}>
             {busy ? "Applying…" : "Apply edit"}
           </Button>
         </div>

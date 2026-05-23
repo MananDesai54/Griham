@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -15,16 +16,25 @@ export function RoomUploader({ projectId }: { projectId: string }) {
     e.preventDefault();
     if (!file || !label) return;
     setBusy(true);
-    const fd = new FormData();
-    fd.set("project_id", projectId);
-    fd.set("label", label);
-    fd.set("file", file);
-    const res = await fetch("/api/rooms", { method: "POST", body: fd });
-    setBusy(false);
-    if (res.ok) {
-      setLabel("");
-      setFile(null);
-      router.refresh();
+    try {
+      const fd = new FormData();
+      fd.set("project_id", projectId);
+      fd.set("label", label);
+      fd.set("file", file);
+      const res = await fetch("/api/rooms", { method: "POST", body: fd });
+      if (res.ok) {
+        toast.success("Room uploaded");
+        setLabel("");
+        setFile(null);
+        router.refresh();
+      } else {
+        const j = await res.json().catch(() => ({}));
+        toast.error(`Upload failed: ${j.error ?? "unknown error"}`);
+      }
+    } catch {
+      toast.error("Upload failed");
+    } finally {
+      setBusy(false);
     }
   }
 
@@ -32,7 +42,7 @@ export function RoomUploader({ projectId }: { projectId: string }) {
     <Card>
       <CardContent className="pt-6">
         <form onSubmit={submit} className="flex flex-col sm:flex-row gap-3 items-end">
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1">
               Room label
             </label>
@@ -43,7 +53,7 @@ export function RoomUploader({ projectId }: { projectId: string }) {
               required
             />
           </div>
-          <div className="flex-1">
+          <div className="flex-1 w-full">
             <label className="block text-xs font-medium text-[var(--color-muted-foreground)] mb-1">
               Photo
             </label>
@@ -55,7 +65,7 @@ export function RoomUploader({ projectId }: { projectId: string }) {
               className="cursor-pointer"
             />
           </div>
-          <Button type="submit" disabled={busy || !file || !label}>
+          <Button type="submit" disabled={busy || !file || !label} className="w-full sm:w-auto">
             {busy ? "Uploading…" : "Upload"}
           </Button>
         </form>
