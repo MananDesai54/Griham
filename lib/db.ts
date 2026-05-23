@@ -37,6 +37,16 @@ const MIGRATIONS = [
    )`,
   `ALTER TABLE designs ADD COLUMN edit_instruction TEXT`,
   `ALTER TABLE designs ADD COLUMN mask_blob_id TEXT REFERENCES blobs(id)`,
+  `CREATE TABLE IF NOT EXISTS meshes (
+     id TEXT PRIMARY KEY,
+     design_id TEXT NOT NULL REFERENCES designs(id) ON DELETE CASCADE,
+     glb_blob_id TEXT,
+     job_id TEXT,
+     status TEXT NOT NULL DEFAULT 'pending',
+     error TEXT,
+     created_at INTEGER NOT NULL
+   )`,
+  `CREATE INDEX IF NOT EXISTS meshes_design_id ON meshes(design_id)`,
 ];
 
 const globalForDb = globalThis as unknown as { __griham_db?: DB };

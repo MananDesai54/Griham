@@ -10,21 +10,25 @@
     "test:watch": "bun --bun x vitest"
   },
   "dependencies": {
+    "@google/genai": "^0.7.0",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.1",
     "next": "^15.0.0",
+    "openai": "^4.67.0",
+    "p-limit": "^6.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
+    "replicate": "^1.0.1",
     "sharp": "^0.33.5",
-    "p-limit": "^6.1.0",
-    "ulid": "^2.3.0",
-    "@google/genai": "^0.7.0",
-    "openai": "^4.67.0",
-    "replicate": "^1.0.1"
+    "three": "^0.184.0",
+    "ulid": "^2.3.0"
   },
   "devDependencies": {
     "@types/bun": "^1.1.10",
     "@types/node": "^22.7.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "@types/three": "^0.184.1",
     "typescript": "^5.6.0",
     "vitest": "^2.1.0"
   }
