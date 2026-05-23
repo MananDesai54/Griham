@@ -35,6 +35,8 @@ const MIGRATIONS = [
      mime TEXT NOT NULL,
      bytes INTEGER NOT NULL
    )`,
+  `ALTER TABLE designs ADD COLUMN edit_instruction TEXT`,
+  `ALTER TABLE designs ADD COLUMN mask_blob_id TEXT REFERENCES blobs(id)`,
 ];
 
 const globalForDb = globalThis as unknown as { __griham_db?: DB };
@@ -44,7 +46,13 @@ export function openDb(path: string): DB {
   const db = new Database(path);
   db.exec("PRAGMA journal_mode = WAL");
   db.exec("PRAGMA foreign_keys = ON");
-  for (const sql of MIGRATIONS) db.exec(sql);
+  for (const sql of MIGRATIONS) {
+    try { db.exec(sql); }
+    catch (e) {
+      const msg = (e as Error).message;
+      if (!/duplicate column name/i.test(msg)) throw e;
+    }
+  }
   return db;
 }
 
