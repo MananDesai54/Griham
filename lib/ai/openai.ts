@@ -51,7 +51,14 @@ export class OpenAIProvider implements DesignProvider {
     return { bytes: decode(resp.data?.[0]?.b64_json), mime: "image/png" };
   }
 
-  async editRoom(_base: ImageOut, _mask: Buffer | null, _instruction: string): Promise<ImageOut> {
-    throw new Error("not implemented");
+  async editRoom(base: ImageOut, mask: Buffer | null, instruction: string): Promise<ImageOut> {
+    const c = client();
+    const baseFile = await toFile(base.bytes, "base.png", { type: base.mime });
+    const args: any = { model: MODEL, image: baseFile, prompt: instruction, size: "1024x1024" };
+    if (mask) {
+      args.mask = await toFile(mask, "mask.png", { type: "image/png" });
+    }
+    const resp = await c.images.edit(args);
+    return { bytes: decode(resp.data?.[0]?.b64_json), mime: "image/png" };
   }
 }

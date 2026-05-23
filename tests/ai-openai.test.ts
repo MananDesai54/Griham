@@ -41,4 +41,32 @@ describe("OpenAIProvider", () => {
     const p = new OpenAIProvider();
     await expect(p.generateAnchor([], "x")).rejects.toThrow(/OPENAI_API_KEY/);
   });
+
+  it("editRoom with mask calls images.edit with mask file", async () => {
+    process.env.OPENAI_API_KEY = "test";
+    editsCreate.mockResolvedValueOnce({ data: [{ b64_json: Buffer.from("edited").toString("base64") }] });
+    const p = new OpenAIProvider();
+    const out = await p.editRoom(
+      { bytes: Buffer.from("base"), mime: "image/png" },
+      Buffer.from("mask-bytes"),
+      "replace sofa"
+    );
+    expect(out.bytes.toString()).toBe("edited");
+    const callArgs = editsCreate.mock.calls.at(-1)![0];
+    expect(callArgs.mask).toBeDefined();
+  });
+
+  it("editRoom without mask still calls images.edit", async () => {
+    process.env.OPENAI_API_KEY = "test";
+    editsCreate.mockResolvedValueOnce({ data: [{ b64_json: Buffer.from("edited").toString("base64") }] });
+    const p = new OpenAIProvider();
+    const out = await p.editRoom(
+      { bytes: Buffer.from("base"), mime: "image/png" },
+      null,
+      "make it minimalist"
+    );
+    expect(out.bytes.toString()).toBe("edited");
+    const callArgs = editsCreate.mock.calls.at(-1)![0];
+    expect(callArgs.mask).toBeUndefined();
+  });
 });
