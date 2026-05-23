@@ -64,4 +64,8 @@ export class ReplicateProvider implements DesignProvider {
     });
     return downloadImage(asUrl(out));
   }
+
+  async editRoom(_base: ImageOut, _mask: Buffer | null, _instruction: string): Promise<ImageOut> {
+    throw new Error("not implemented");
+  }
 }

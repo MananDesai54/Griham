@@ -41,4 +41,26 @@ describe("GeminiProvider", () => {
     const p = new GeminiProvider();
     await expect(p.generateAnchor([], "x")).rejects.toThrow(/GEMINI_API_KEY/);
   });
+
+  it("editRoom sends base + instruction (no mask)", async () => {
+    process.env.GEMINI_API_KEY = "test";
+    const p = new GeminiProvider();
+    const out = await p.editRoom(
+      { bytes: Buffer.from("base"), mime: "image/png" },
+      null,
+      "move sofa left"
+    );
+    expect(out.bytes.toString()).toBe("img-bytes");
+  });
+
+  it("editRoom sends base + mask + instruction", async () => {
+    process.env.GEMINI_API_KEY = "test";
+    const p = new GeminiProvider();
+    const out = await p.editRoom(
+      { bytes: Buffer.from("base"), mime: "image/png" },
+      Buffer.from("mask"),
+      "replace sofa with green velvet"
+    );
+    expect(out.bytes.toString()).toBe("img-bytes");
+  });
 });

@@ -20,5 +20,5 @@ export interface DesignProvider {
   name: ProviderName;
   generateAnchor(rooms: RoomInput[], stylePrompt: string): Promise<AnchorOut>;
   generateRoom(anchor: ImageOut, room: RoomInput, stylePrompt: string): Promise<ImageOut>;
-  editRoom?(base: ImageOut, mask: Buffer | null, instruction: string): Promise<ImageOut>;
+  editRoom(base: ImageOut, mask: Buffer | null, instruction: string): Promise<ImageOut>;
 }

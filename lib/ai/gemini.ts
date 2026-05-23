@@ -56,4 +56,15 @@ export class GeminiProvider implements DesignProvider {
     const resp = await ai.models.generateContent({ model: MODEL, contents: [{ role: "user", parts }] });
     return extractImage(resp);
   }
+
+  async editRoom(base: ImageOut, mask: Buffer | null, instruction: string): Promise<ImageOut> {
+    const ai = client();
+    const text = mask
+      ? `Edit the first image. The second image is a mask: modify only the area where the mask is white. Instruction: ${instruction}. Preserve the rest of the image.`
+      : `Edit the image. Instruction: ${instruction}. Preserve everything not mentioned.`;
+    const parts: any[] = [{ text }, inlinePart(base.bytes, base.mime)];
+    if (mask) parts.push(inlinePart(mask, "image/png"));
+    const resp = await ai.models.generateContent({ model: MODEL, contents: [{ role: "user", parts }] });
+    return extractImage(resp);
+  }
 }
