@@ -52,8 +52,8 @@ export const MaskCanvas = forwardRef<MaskCanvasHandle, { src: string; brushSize:
   }));
 
   return (
-    <div style={{ position: "relative", display: "inline-block" }}>
-      <img src={src} alt="base" style={{ display: "block", maxWidth: "100%" }} />
+    <div className="relative inline-block w-full">
+      <img src={src} alt="base" className="block w-full" />
       <canvas
         ref={canvasRef}
         width={size.w}

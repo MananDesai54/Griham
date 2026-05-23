@@ -1,5 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { Loader, Box, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 type State =
   | { kind: "idle" }
@@ -8,17 +11,33 @@ type State =
   | { kind: "ready"; glbUrl: string }
   | { kind: "failed"; error: string };
 
-export function MeshButton({ designId, onView }: { designId: string; onView: (glbUrl: string) => void }) {
+export function MeshButton({
+  designId,
+  onView,
+}: {
+  designId: string;
+  onView: (glbUrl: string) => void;
+}) {
   const [state, setState] = useState<State>({ kind: "idle" });
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => () => { if (timerRef.current) clearTimeout(timerRef.current); }, []);
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    []
+  );
 
   async function start() {
     setState({ kind: "starting" });
-    const res = await fetch(`/api/designs/${designId}/mesh`, { method: "POST" });
+    const res = await fetch(`/api/designs/${designId}/mesh`, {
+      method: "POST",
+    });
     const body = await res.json().catch(() => ({}));
-    if (!res.ok) { setState({ kind: "failed", error: body.error ?? "failed" }); return; }
+    if (!res.ok) {
+      setState({ kind: "failed", error: body.error ?? "failed" });
+      return;
+    }
     setState({ kind: "pending", meshId: body.mesh_id });
     schedulePoll(body.mesh_id);
   }
@@ -41,14 +60,43 @@ export function MeshButton({ designId, onView }: { designId: string; onView: (gl
     schedulePoll(meshId);
   }
 
-  if (state.kind === "idle") return <button onClick={start}>Generate 3D</button>;
-  if (state.kind === "starting") return <span>Starting…</span>;
-  if (state.kind === "pending") return <span>Building mesh…</span>;
-  if (state.kind === "ready") return <button onClick={() => onView(state.glbUrl)}>View 3D</button>;
+  if (state.kind === "idle") {
+    return (
+      <Button variant="outline" size="sm" onClick={start}>
+        <Box className="h-3.5 w-3.5" />
+        Generate 3D
+      </Button>
+    );
+  }
+
+  if (state.kind === "starting" || state.kind === "pending") {
+    return (
+      <Badge variant="warning" className="flex items-center gap-1.5 py-1 px-2.5">
+        <Loader className="h-3 w-3 animate-spin" />
+        {state.kind === "starting" ? "Starting…" : "Building mesh…"}
+      </Badge>
+    );
+  }
+
+  if (state.kind === "ready") {
+    return (
+      <Button variant="outline" size="sm" onClick={() => onView(state.glbUrl)}>
+        <Box className="h-3.5 w-3.5" />
+        View 3D
+      </Button>
+    );
+  }
+
+  // failed
   return (
-    <span>
-      <span style={{ color: "red" }}>failed: {state.error}</span>{" "}
-      <button onClick={start}>Retry</button>
-    </span>
+    <div className="flex items-center gap-2">
+      <Badge variant="error" className="flex items-center gap-1">
+        <AlertCircle className="h-3 w-3" />
+        {state.error}
+      </Badge>
+      <Button variant="ghost" size="sm" onClick={start}>
+        Retry
+      </Button>
+    </div>
   );
 }

@@ -2,8 +2,26 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MaskCanvas, type MaskCanvasHandle } from "./MaskCanvas";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Slider } from "@/components/ui/slider";
 
-export function DesignEditor({ designId, src, onClose }: { designId: string; src: string; onClose: () => void }) {
+export function DesignEditor({
+  designId,
+  src,
+  onClose,
+}: {
+  designId: string;
+  src: string;
+  onClose: () => void;
+}) {
   const router = useRouter();
   const canvasRef = useRef<MaskCanvasHandle>(null);
   const [instruction, setInstruction] = useState("");
@@ -12,41 +30,89 @@ export function DesignEditor({ designId, src, onClose }: { designId: string; src
   const [err, setErr] = useState<string | null>(null);
 
   async function apply() {
-    if (!instruction.trim()) { setErr("instruction required"); return; }
-    setBusy(true); setErr(null);
+    if (!instruction.trim()) {
+      setErr("instruction required");
+      return;
+    }
+    setBusy(true);
+    setErr(null);
     const fd = new FormData();
     fd.set("instruction", instruction);
     const mask = await canvasRef.current?.exportMask();
     if (mask) fd.set("mask", mask, "mask.png");
-    const res = await fetch(`/api/designs/${designId}/edit`, { method: "POST", body: fd });
+    const res = await fetch(`/api/designs/${designId}/edit`, {
+      method: "POST",
+      body: fd,
+    });
     setBusy(false);
-    if (!res.ok) { const j = await res.json().catch(() => ({})); setErr(j.error ?? "failed"); return; }
+    if (!res.ok) {
+      const j = await res.json().catch(() => ({}));
+      setErr(j.error ?? "failed");
+      return;
+    }
     onClose();
     router.refresh();
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50 }}>
-      <div style={{ background: "white", padding: 16, borderRadius: 8, maxWidth: 800, width: "90%" }}>
-        <MaskCanvas ref={canvasRef} src={src} brushSize={brush} />
-        <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
-          <label>Brush: {brush}</label>
-          <input type="range" min={4} max={80} value={brush} onChange={e => setBrush(Number(e.target.value))} />
-          <button onClick={() => canvasRef.current?.clear()}>Clear mask</button>
+    <Dialog open onOpenChange={(open) => { if (!open) onClose(); }}>
+      <DialogContent className="max-w-3xl w-[92vw]">
+        <DialogHeader>
+          <DialogTitle>Edit design</DialogTitle>
+          <DialogDescription>
+            Paint the area you want to change, then describe the edit.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="rounded-md overflow-hidden border">
+          <MaskCanvas ref={canvasRef} src={src} brushSize={brush} />
         </div>
-        <textarea
+
+        <div className="flex items-center gap-4 mt-4">
+          <span className="text-sm text-[var(--color-muted-foreground)] whitespace-nowrap">
+            Brush: {brush}px
+          </span>
+          <Slider
+            min={4}
+            max={80}
+            step={1}
+            value={[brush]}
+            onValueChange={([v]) => setBrush(v)}
+            className="flex-1"
+          />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => canvasRef.current?.clear()}
+          >
+            Clear mask
+          </Button>
+        </div>
+
+        <Textarea
           value={instruction}
-          onChange={e => setInstruction(e.target.value)}
+          onChange={(e) => setInstruction(e.target.value)}
           placeholder="e.g. replace sofa with green velvet"
           rows={3}
-          style={{ width: "100%", marginTop: 8 }}
+          className="mt-3"
         />
-        {err && <p style={{ color: "red" }}>{err}</p>}
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end", marginTop: 8 }}>
-          <button onClick={onClose} disabled={busy}>Cancel</button>
-          <button onClick={apply} disabled={busy || !instruction.trim()}>{busy ? "Applying…" : "Apply edit"}</button>
+
+        {err && (
+          <p className="text-sm text-[var(--color-destructive)] mt-2">{err}</p>
+        )}
+
+        <div className="flex gap-3 justify-end mt-4">
+          <Button variant="outline" onClick={onClose} disabled={busy}>
+            Cancel
+          </Button>
+          <Button
+            onClick={apply}
+            disabled={busy || !instruction.trim()}
+          >
+            {busy ? "Applying…" : "Apply edit"}
+          </Button>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 }
