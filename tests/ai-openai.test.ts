@@ -12,15 +12,15 @@ vi.mock("openai", () => ({
 import { OpenAIProvider } from "../lib/ai/openai";
 
 describe("OpenAIProvider", () => {
-  it("generateAnchor calls images.generate and returns bytes", async () => {
+  it("generateAnchor calls images.edit with room photos and returns bytes", async () => {
     process.env.OPENAI_API_KEY = "test";
-    imagesGenerate.mockResolvedValueOnce({ data: [{ b64_json: Buffer.from("anchor").toString("base64") }] });
+    editsCreate.mockResolvedValueOnce({ data: [{ b64_json: Buffer.from("anchor").toString("base64") }] });
     const p = new OpenAIProvider();
     const rooms = [{ label: "living room", bytes: Buffer.from("a"), mime: "image/jpeg" }];
     const out = await p.generateAnchor(rooms, "style");
     expect(out.anchor.bytes.toString()).toBe("anchor");
     expect(out.anchorRoomLabel).toBe("living room");
-    expect(imagesGenerate).toHaveBeenCalled();
+    expect(editsCreate).toHaveBeenCalled();
   });
 
   it("generateRoom calls images.edit with anchor + room", async () => {

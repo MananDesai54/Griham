@@ -1,6 +1,7 @@
 import { GoogleGenAI } from "@google/genai";
 import type { DesignProvider, ImageOut, RoomInput, AnchorOut } from "./types";
 import { MissingApiKeyError } from "./index";
+import { pickAnchorRoomByLabel } from "../style";
 
 const MODEL = "gemini-2.5-flash-image";
 
@@ -30,7 +31,7 @@ export class GeminiProvider implements DesignProvider {
   async generateAnchor(rooms: RoomInput[], stylePrompt: string): Promise<AnchorOut> {
     const ai = client();
     if (rooms.length === 0) throw new Error("no rooms");
-    const anchorRoom = rooms.find(r => r.label.toLowerCase().includes("living")) ?? rooms[0];
+    const anchorRoom = pickAnchorRoomByLabel(rooms)!;
     const text =
       `${stylePrompt}\n\nThe following images show the rooms in the home. ` +
       `Render a redesigned view of the room labeled "${anchorRoom.label}". ` +

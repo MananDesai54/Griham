@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pickAnchorRoom, buildStylePrompt } from "../lib/style";
+import { pickAnchorRoom, pickAnchorRoomByLabel, buildStylePrompt } from "../lib/style";
 
 type Room = { id: string; label: string; created_at: number };
 
@@ -30,5 +30,28 @@ describe("style", () => {
     const p = buildStylePrompt();
     expect(p.toLowerCase()).toContain("consistent");
     expect(p.toLowerCase()).toContain("geometry");
+  });
+});
+
+describe("pickAnchorRoomByLabel", () => {
+  it("prefers room with 'living' in label", () => {
+    const rooms = [
+      { label: "kitchen" },
+      { label: "Living Room" },
+      { label: "bedroom" },
+    ];
+    expect(pickAnchorRoomByLabel(rooms)!.label).toBe("Living Room");
+  });
+
+  it("falls back to first room when no living room", () => {
+    const rooms = [
+      { label: "kitchen" },
+      { label: "bedroom" },
+    ];
+    expect(pickAnchorRoomByLabel(rooms)!.label).toBe("kitchen");
+  });
+
+  it("returns null on empty list", () => {
+    expect(pickAnchorRoomByLabel([])).toBeNull();
   });
 });

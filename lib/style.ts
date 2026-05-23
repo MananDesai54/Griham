@@ -7,6 +7,11 @@ export function pickAnchorRoom<T extends RoomLike>(rooms: T[]): T | null {
   return [...rooms].sort((a, b) => a.created_at - b.created_at)[0];
 }
 
+export function pickAnchorRoomByLabel<T extends { label: string }>(rooms: T[]): T | null {
+  if (rooms.length === 0) return null;
+  return rooms.find(r => r.label.toLowerCase().includes("living")) ?? rooms[0];
+}
+
 export function buildStylePrompt(): string {
   return (
     "Redesign with a modern, warm, cohesive interior design. " +

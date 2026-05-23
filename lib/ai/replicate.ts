@@ -1,9 +1,10 @@
+// TODO: pin a specific version hash before production use. Slug-only resolves to the model's latest published version, which may change.
 import Replicate from "replicate";
 import type { DesignProvider, ImageOut, RoomInput, AnchorOut } from "./types";
 import { MissingApiKeyError } from "./index";
+import { pickAnchorRoomByLabel } from "../style";
 
-// IP-Adapter SDXL on Replicate. If this slug rots, pin a newer IP-Adapter SDXL variant.
-const MODEL = "lucataco/sdxl-ip-adapter:0c8d0f1e9d3a9f8c2e6b5a1c4d8e7f6a5b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e" as `${string}/${string}:${string}`;
+const MODEL = "lucataco/sdxl-ip-adapter" as `${string}/${string}`;
 
 function client() {
   const auth = process.env.REPLICATE_API_TOKEN;
@@ -35,7 +36,7 @@ export class ReplicateProvider implements DesignProvider {
   async generateAnchor(rooms: RoomInput[], stylePrompt: string): Promise<AnchorOut> {
     const r = client();
     if (rooms.length === 0) throw new Error("no rooms");
-    const anchorRoom = rooms.find(x => x.label.toLowerCase().includes("living")) ?? rooms[0];
+    const anchorRoom = pickAnchorRoomByLabel(rooms)!;
     const prompt = `${stylePrompt} Interior of ${anchorRoom.label}, cohesive palette, high detail.`;
     const out = await r.run(MODEL, {
       input: {

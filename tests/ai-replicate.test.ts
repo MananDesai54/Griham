@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 
 const run = vi.fn();
 vi.mock("replicate", () => ({
@@ -15,6 +15,8 @@ global.fetch = vi.fn(async () => ({
 import { ReplicateProvider } from "../lib/ai/replicate";
 
 describe("ReplicateProvider", () => {
+  beforeEach(() => { run.mockClear(); });
+
   it("generateAnchor returns image bytes from URL", async () => {
     process.env.REPLICATE_API_TOKEN = "test";
     run.mockResolvedValueOnce(["https://cdn.example/img.png"]);
@@ -38,7 +40,8 @@ describe("ReplicateProvider", () => {
     );
     expect(out.bytes.toString()).toBe("rep-bytes");
     const args = run.mock.calls[0][1];
-    expect(args.input.ip_adapter_image).toBeDefined();
+    expect(args.input.ip_adapter_image).toContain(Buffer.from("anc").toString("base64"));
+    expect(args.input.image).toContain(Buffer.from("k").toString("base64"));
   });
 
   it("throws on missing token", async () => {
