@@ -8,5 +8,7 @@ export default defineConfig({
   test: {
     environment: "node",
     include: ["tests/**/*.test.ts"],
+    pool: "forks",
+    poolOptions: { forks: { singleFork: true } },
   },
 });
