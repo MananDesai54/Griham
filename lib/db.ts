@@ -1,6 +1,8 @@
-import Database, { type Database as DB } from "better-sqlite3";
+import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+
+type DB = Database;
 
 const MIGRATIONS = [
   `CREATE TABLE IF NOT EXISTS projects (
@@ -40,8 +42,8 @@ const globalForDb = globalThis as unknown as { __griham_db?: DB };
 export function openDb(path: string): DB {
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
   const db = new Database(path);
-  db.pragma("journal_mode = WAL");
-  db.pragma("foreign_keys = ON");
+  db.exec("PRAGMA journal_mode = WAL");
+  db.exec("PRAGMA foreign_keys = ON");
   for (const sql of MIGRATIONS) db.exec(sql);
   return db;
 }
@@ -52,3 +54,5 @@ export function getDb(): DB {
   globalForDb.__griham_db = openDb(path);
   return globalForDb.__griham_db;
 }
+
+export type { DB };

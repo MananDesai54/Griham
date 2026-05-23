@@ -1,6 +1,6 @@
 import { mkdirSync, writeFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Database } from "better-sqlite3";
+import type { DB as Database } from "./db";
 import { newId } from "./ids";
 
 export async function writeBlob(db: Database, baseDir: string, data: Buffer, mime: string): Promise<string> {

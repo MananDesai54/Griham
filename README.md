@@ -5,10 +5,10 @@ AI home decor: upload labeled room photos, get redesigned 2D views with consiste
 ## Setup
 
 ```bash
-npm install
+bun install
 cp .env.local.example .env.local
 # fill in at least one provider key
-npm run dev
+bun run dev
 ```
 
 Open http://localhost:3000.
@@ -23,8 +23,10 @@ Choose one per project on create:
 ## Tests
 
 ```bash
-npm test
+bun test
 ```
+
+> Tests run via Vitest under Bun (`bun x vitest`).
 
 ## Scope
 

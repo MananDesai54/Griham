@@ -3,17 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "dev": "bun --bun next dev",
+    "build": "bun --bun next build",
+    "start": "bun --bun next start",
+    "test": "bun --bun x vitest run",
+    "test:watch": "bun --bun x vitest"
   },
   "dependencies": {
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "better-sqlite3": "^11.3.0",
     "sharp": "^0.33.5",
     "p-limit": "^6.1.0",
     "ulid": "^2.3.0",
@@ -22,7 +21,7 @@
     "replicate": "^1.0.1"
   },
   "devDependencies": {
-    "@types/better-sqlite3": "^7.6.11",
+    "@types/bun": "^1.1.10",
     "@types/node": "^22.7.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
