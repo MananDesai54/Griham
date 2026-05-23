@@ -68,9 +68,12 @@ describe("designs.generate", () => {
     const db = getDb();
     db.prepare("INSERT INTO projects (id, name, provider, created_at) VALUES (?,?,?,?)").run("p2", "Home2", "gemini", 1);
     const { writeBlob, dataDir } = await import("../lib/storage");
+    const srcAnchor = await writeBlob(db, dataDir(), Buffer.from("anc"), "image/jpeg");
     const src = await writeBlob(db, dataDir(), Buffer.from("a"), "image/jpeg");
     db.prepare("INSERT INTO rooms (id, project_id, label, source_blob_id, created_at) VALUES (?,?,?,?,?)")
-      .run("rx", "p2", "fail-me", src, 1);
+      .run("ra", "p2", "living room", srcAnchor, 1);
+    db.prepare("INSERT INTO rooms (id, project_id, label, source_blob_id, created_at) VALUES (?,?,?,?,?)")
+      .run("rx", "p2", "fail-me", src, 2);
 
     const req1 = new Request("http://x", { method: "POST", body: JSON.stringify({ project_id: "p2" }), headers: { "content-type": "application/json" } });
     await POST(req1 as any);
