@@ -2,11 +2,8 @@ import { describe, it, expect, beforeEach } from "vitest";
 import { openDb } from "../lib/db";
 
 describe("db", () => {
-  let dbPath: string;
-  beforeEach(() => { dbPath = ":memory:"; });
-
   it("creates tables on open", () => {
-    const db = openDb(dbPath);
+    const db = openDb(":memory:");
     const tables = db.prepare("SELECT name FROM sqlite_master WHERE type='table' ORDER BY name").all() as { name: string }[];
     const names = tables.map(t => t.name);
     expect(names).toContain("projects");

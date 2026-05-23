@@ -35,7 +35,7 @@ const MIGRATIONS = [
    )`,
 ];
 
-let instance: DB | null = null;
+const globalForDb = globalThis as unknown as { __griham_db?: DB };
 
 export function openDb(path: string): DB {
   if (path !== ":memory:") mkdirSync(dirname(path), { recursive: true });
@@ -47,8 +47,8 @@ export function openDb(path: string): DB {
 }
 
 export function getDb(): DB {
-  if (instance) return instance;
+  if (globalForDb.__griham_db) return globalForDb.__griham_db;
   const path = process.env.GRIHAM_DB_PATH ?? `${process.env.GRIHAM_DATA_DIR ?? "./data"}/griham.db`;
-  instance = openDb(path);
-  return instance;
+  globalForDb.__griham_db = openDb(path);
+  return globalForDb.__griham_db;
 }
