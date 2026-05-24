@@ -4,9 +4,11 @@ import { Loader2, AlertCircle } from "lucide-react";
 import { DesignEditor } from "./DesignEditor";
 import { MeshButton } from "./MeshButton";
 import { MeshViewer } from "./MeshViewer";
+import { CompareSlider } from "./CompareSlider";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 type Room = { id: string; label: string; source_blob_id: string };
 type Design = {
@@ -53,6 +55,7 @@ export function DesignGrid({
     null
   );
   const [viewing, setViewing] = useState<string | null>(null);
+  const [zoomed, setZoomed] = useState<{ blobId: string; label: string } | null>(null);
   const chains = useMemo(() => {
     const m = new Map<string, Design[]>();
     for (const r of rooms) m.set(r.id, chainFor(r.id, designs));
@@ -78,6 +81,7 @@ export function DesignGrid({
             chain.length - 1
           );
           const current = chain[idx];
+          const sourceUrl = `/api/blobs/${r.source_blob_id}`;
 
           return (
             <Card
@@ -89,35 +93,30 @@ export function DesignGrid({
                   {r.label}
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <div className="text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">
-                      Source
-                    </div>
-                    <img
-                      src={`/api/blobs/${r.source_blob_id}`}
-                      alt={r.label}
-                      className="w-full rounded-md object-cover aspect-[4/3]"
+                {/* Image area — full-width slider when ready, source-only otherwise */}
+                {current?.status === "ready" && current.blob_id ? (
+                  <div
+                    className="cursor-zoom-in"
+                    onClick={() =>
+                      setZoomed({ blobId: current.blob_id!, label: r.label })
+                    }
+                  >
+                    <CompareSlider
+                      beforeSrc={sourceUrl}
+                      afterSrc={`/api/blobs/${current.blob_id}`}
+                      beforeLabel="Before"
+                      afterLabel="After"
                     />
                   </div>
-                  <div>
-                    <div className="text-xs font-medium text-[var(--color-muted-foreground)] mb-1.5">
-                      Design
-                    </div>
-                    {!current && (
-                      <div className="w-full aspect-[4/3] rounded-md bg-[var(--color-muted)] flex items-center justify-center">
-                        <span className="text-[var(--color-muted-foreground)] text-sm">—</span>
-                      </div>
-                    )}
-                    {current?.status === "ready" && current.blob_id && (
-                      <img
-                        src={`/api/blobs/${current.blob_id}`}
-                        alt="design"
-                        className="w-full rounded-md object-cover aspect-[4/3]"
-                      />
-                    )}
+                ) : (
+                  <div className="relative w-full rounded-md overflow-hidden" style={{ aspectRatio: "16 / 9" }}>
+                    <img
+                      src={sourceUrl}
+                      alt={r.label}
+                      className="w-full h-full object-cover"
+                    />
                     {current?.status === "pending" && (
-                      <div className="w-full aspect-[4/3] rounded-md bg-[var(--color-muted)] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
                         <Badge
                           variant="warning"
                           className="flex items-center gap-1.5 animate-pulse"
@@ -128,7 +127,7 @@ export function DesignGrid({
                       </div>
                     )}
                     {current?.status === "failed" && (
-                      <div className="w-full aspect-[4/3] rounded-md bg-[var(--color-muted)] flex flex-col items-center justify-center gap-1 px-2">
+                      <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center gap-1 px-2">
                         <Badge
                           variant="error"
                           className="flex items-center gap-1"
@@ -137,14 +136,14 @@ export function DesignGrid({
                           Failed
                         </Badge>
                         {current.error && (
-                          <p className="text-xs text-[var(--color-muted-foreground)] text-center line-clamp-2">
+                          <p className="text-xs text-white text-center line-clamp-2">
                             {current.error}
                           </p>
                         )}
                       </div>
                     )}
                   </div>
-                </div>
+                )}
 
                 {chain.length > 1 && (
                   <div className="flex items-center gap-2 mt-3">
@@ -212,6 +211,21 @@ export function DesignGrid({
       {viewing && (
         <MeshViewer glbUrl={viewing} onClose={() => setViewing(null)} />
       )}
+
+      <Dialog open={!!zoomed} onOpenChange={(open) => { if (!open) setZoomed(null); }}>
+        <DialogContent className="max-w-4xl p-4">
+          {zoomed && (
+            <>
+              <div className="font-serif font-semibold text-lg mb-3">{zoomed.label}</div>
+              <img
+                src={`/api/blobs/${zoomed.blobId}`}
+                alt={zoomed.label}
+                className="w-full rounded-md object-contain max-h-[80vh]"
+              />
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
