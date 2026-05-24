@@ -13,6 +13,7 @@ type Pending = {
   file: File;
   preview: string;
   label: string;
+  hint: string;
   status: "queued" | "uploading" | "done" | "failed";
   error?: string;
 };
@@ -44,6 +45,7 @@ export function RoomUploader({ projectId }: { projectId: string }) {
         file,
         preview: URL.createObjectURL(file),
         label: suggestLabel(file.name, [...existing, ...next.map(n => n.label)]),
+        hint: "",
         status: "queued",
       });
     });
@@ -62,6 +64,10 @@ export function RoomUploader({ projectId }: { projectId: string }) {
     setItems(prev => prev.map(p => (p.id === id ? { ...p, label } : p)));
   }
 
+  function updateHint(id: string, hint: string) {
+    setItems(prev => prev.map(p => (p.id === id ? { ...p, hint } : p)));
+  }
+
   async function uploadAll() {
     const queued = items.filter(i => i.status === "queued" && i.label.trim());
     if (queued.length === 0) {
@@ -76,6 +82,7 @@ export function RoomUploader({ projectId }: { projectId: string }) {
       fd.set("project_id", projectId);
       fd.set("label", item.label.trim());
       fd.set("file", item.file);
+      fd.set("hint", item.hint || "");
       try {
         const res = await fetch("/api/rooms", { method: "POST", body: fd });
         if (res.ok) {
@@ -147,21 +154,30 @@ export function RoomUploader({ projectId }: { projectId: string }) {
             {items.map(item => (
               <div
                 key={item.id}
-                className="flex items-center gap-3 rounded-md border bg-[var(--color-card)] p-2"
+                className="flex items-start gap-3 rounded-md border bg-[var(--color-card)] p-2"
               >
                 <img
                   src={item.preview}
                   alt={item.label || "room"}
-                  className="h-14 w-14 rounded object-cover"
+                  className="h-14 w-14 rounded object-cover flex-shrink-0"
                 />
-                <Input
-                  value={item.label}
-                  onChange={e => updateLabel(item.id, e.target.value)}
-                  placeholder="Room label"
-                  disabled={item.status === "uploading" || item.status === "done"}
-                  className="flex-1"
-                />
-                <div className="flex items-center gap-2 w-28 justify-end text-xs">
+                <div className="flex flex-col gap-1 flex-1 min-w-0">
+                  <Input
+                    value={item.label}
+                    onChange={e => updateLabel(item.id, e.target.value)}
+                    placeholder="Room label"
+                    disabled={item.status === "uploading" || item.status === "done"}
+                    className="w-full"
+                  />
+                  <Input
+                    value={item.hint}
+                    onChange={e => updateHint(item.id, e.target.value)}
+                    placeholder="Optional hint (e.g. add plants)"
+                    disabled={item.status === "uploading" || item.status === "done"}
+                    className="w-full text-xs"
+                  />
+                </div>
+                <div className="flex items-center gap-2 w-28 justify-end text-xs flex-shrink-0">
                   {item.status === "queued" && <span className="text-[var(--color-muted-foreground)]">queued</span>}
                   {item.status === "uploading" && (
                     <span className="inline-flex items-center gap-1 text-[var(--color-muted-foreground)]">

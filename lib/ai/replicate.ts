@@ -54,7 +54,8 @@ export class ReplicateProvider implements DesignProvider {
 
   async generateRoom(anchor: ImageOut, room: RoomInput, stylePrompt: string): Promise<ImageOut> {
     const r = client();
-    const prompt = `${stylePrompt} Interior of ${room.label}, matching the reference style exactly.`;
+    const prompt = `${stylePrompt} Interior of ${room.label}, matching the reference style exactly.` +
+      (room.hint?.trim() ? ` Hint: ${room.hint.trim()}.` : "");
     const out = await r.run(MODEL, {
       input: {
         prompt,

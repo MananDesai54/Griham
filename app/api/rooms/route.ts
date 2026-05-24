@@ -21,11 +21,14 @@ export async function POST(req: NextRequest) {
   const proj = db.prepare("SELECT id FROM projects WHERE id=?").get(projectId);
   if (!proj) return NextResponse.json({ error: "project not found" }, { status: 404 });
 
+  const hint = form.get("hint");
+  const hintStr = typeof hint === "string" ? hint.trim() || null : null;
+
   const raw = Buffer.from(await file.arrayBuffer());
   const { bytes, mime } = await normalizeImage(raw);
   const blobId = await writeBlob(db, dataDir(), bytes, mime);
   const id = newId();
-  db.prepare("INSERT INTO rooms (id, project_id, label, source_blob_id, created_at) VALUES (?,?,?,?,?)")
-    .run(id, projectId, label, blobId, Date.now());
+  db.prepare("INSERT INTO rooms (id, project_id, label, source_blob_id, hint, created_at) VALUES (?,?,?,?,?,?)")
+    .run(id, projectId, label, blobId, hintStr, Date.now());
   return NextResponse.json({ id, label, source_blob_id: blobId });
 }

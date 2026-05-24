@@ -12,11 +12,13 @@ export function pickAnchorRoomByLabel<T extends { label: string }>(rooms: T[]): 
   return rooms.find(r => r.label.toLowerCase().includes("living")) ?? rooms[0];
 }
 
-export function buildStylePrompt(): string {
-  return (
-    "Redesign with a modern, warm, cohesive interior design. " +
+export function buildStylePrompt(brief?: string | null): string {
+  const base =
+    "Redesign with a cohesive interior design. " +
     "Use a consistent color palette and material set across all rooms. " +
     "Preserve the room geometry: walls, windows, doors, ceilings must stay in place. " +
-    "Replace furniture, surfaces, lighting, and decor with a cohesive design."
-  );
+    "Replace furniture, surfaces, lighting, and decor with a cohesive design.";
+  const trimmed = brief?.trim();
+  if (!trimmed) return base;
+  return `${base}\n\nUser style brief: ${trimmed}`;
 }

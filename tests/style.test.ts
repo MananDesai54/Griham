@@ -31,6 +31,12 @@ describe("style", () => {
     expect(p.toLowerCase()).toContain("consistent");
     expect(p.toLowerCase()).toContain("geometry");
   });
+
+  it("buildStylePrompt embeds the user brief when given", () => {
+    const p = buildStylePrompt("modern boho, terracotta + cream");
+    expect(p).toContain("modern boho, terracotta + cream");
+    expect(p.toLowerCase()).toContain("consistent");
+  });
 });
 
 describe("pickAnchorRoomByLabel", () => {

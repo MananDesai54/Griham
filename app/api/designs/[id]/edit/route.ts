@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   if (base.status !== "ready" || !base.blob_id) return NextResponse.json({ error: "base design not ready" }, { status: 400 });
 
   const room = db.prepare("SELECT project_id FROM rooms WHERE id=?").get(base.room_id) as { project_id: string };
-  const project = db.prepare("SELECT provider FROM projects WHERE id=?").get(room.project_id) as { provider: ProviderName };
+  const project = db.prepare("SELECT provider, style_brief FROM projects WHERE id=?").get(room.project_id) as { provider: ProviderName; style_brief: string | null };
 
   let provider;
   try { provider = getProvider(project.provider); }
@@ -47,7 +47,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const baseImage = await readBlob(db, dataDir(), base.blob_id);
 
   const newDesignId = newId();
-  const stylePrompt = buildStylePrompt();
+  const stylePrompt = buildStylePrompt(project.style_brief);
   db.prepare(
     "INSERT INTO designs (id, room_id, blob_id, prompt, parent_design_id, status, edit_instruction, mask_blob_id, created_at) VALUES (?,?,?,?,?,?,?,?,?)"
   ).run(newDesignId, base.room_id, null, stylePrompt, base.id, "pending", instruction, maskBlobId, Date.now());

@@ -46,7 +46,10 @@ function strictAnchorPrompt(stylePrompt: string, anchorLabel: string, allLabels:
   );
 }
 
-function strictRoomPrompt(stylePrompt: string, roomLabel: string): string {
+function strictRoomPrompt(stylePrompt: string, roomLabel: string, hint?: string): string {
+  const hintLine = hint?.trim()
+    ? `\n\nADDITIONAL ROOM HINT: ${hint.trim()}\nIncorporate this hint while still matching the anchor's overall style.`
+    : "";
   return (
     `You are a professional interior designer. ${stylePrompt}\n\n` +
     `I am providing two images:\n` +
@@ -56,7 +59,8 @@ function strictRoomPrompt(stylePrompt: string, roomLabel: string): string {
     `1. Preserves IMAGE 2's exact geometry: walls, windows, doors, ceiling, floor plan, camera angle.\n` +
     `2. Uses the palette, materials, lighting language, and overall style of IMAGE 1.\n` +
     `3. Replaces furniture, decor, surfaces, and fixtures to fit ${roomLabel} but in the anchor's style.\n` +
-    `4. Photorealistic. No text, no watermarks. No cartoon style.`
+    `4. Photorealistic. No text, no watermarks. No cartoon style.` +
+    hintLine
   );
 }
 
@@ -105,7 +109,7 @@ export class GeminiProvider implements DesignProvider {
 
   async generateRoom(anchor: ImageOut, room: RoomInput, stylePrompt: string): Promise<ImageOut> {
     const ai = client();
-    const text = strictRoomPrompt(stylePrompt, room.label);
+    const text = strictRoomPrompt(stylePrompt, room.label, room.hint);
     const parts = [
       { text },
       inlinePart(anchor.bytes, anchor.mime),

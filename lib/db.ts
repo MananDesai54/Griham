@@ -47,6 +47,8 @@ const MIGRATIONS = [
      created_at INTEGER NOT NULL
    )`,
   `CREATE INDEX IF NOT EXISTS meshes_design_id ON meshes(design_id)`,
+  `ALTER TABLE projects ADD COLUMN style_brief TEXT`,
+  `ALTER TABLE rooms ADD COLUMN hint TEXT`,
 ];
 
 const globalForDb = globalThis as unknown as { __griham_db?: DB };

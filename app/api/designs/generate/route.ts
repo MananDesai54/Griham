@@ -9,11 +9,11 @@ import type { ProviderName, RoomInput } from "@/lib/ai/types";
 
 export const maxDuration = 300;
 
-type RoomRow = { id: string; label: string; source_blob_id: string; created_at: number };
+type RoomRow = { id: string; label: string; source_blob_id: string; hint: string | null; created_at: number };
 
 async function loadRoomInput(db: ReturnType<typeof getDb>, base: string, row: RoomRow): Promise<RoomInput> {
   const { bytes, mime } = await readBlob(db, base, row.source_blob_id);
-  return { label: row.label, bytes, mime };
+  return { label: row.label, bytes, mime, hint: row.hint ?? undefined };
 }
 
 export async function POST(req: NextRequest) {
@@ -24,8 +24,8 @@ export async function POST(req: NextRequest) {
   const db = getDb();
   const base = dataDir();
 
-  const project = db.prepare("SELECT id, provider, style_anchor_blob_id FROM projects WHERE id=?").get(projectId) as
-    | { id: string; provider: ProviderName; style_anchor_blob_id: string | null }
+  const project = db.prepare("SELECT id, provider, style_anchor_blob_id, style_brief FROM projects WHERE id=?").get(projectId) as
+    | { id: string; provider: ProviderName; style_anchor_blob_id: string | null; style_brief: string | null }
     | undefined;
   if (!project) return NextResponse.json({ error: "project not found" }, { status: 404 });
 
@@ -36,10 +36,10 @@ export async function POST(req: NextRequest) {
     throw e;
   }
 
-  const rooms = db.prepare("SELECT id, label, source_blob_id, created_at FROM rooms WHERE project_id=? ORDER BY created_at").all(projectId) as RoomRow[];
+  const rooms = db.prepare("SELECT id, label, source_blob_id, hint, created_at FROM rooms WHERE project_id=? ORDER BY created_at").all(projectId) as RoomRow[];
   if (rooms.length === 0) return NextResponse.json({ error: "no rooms uploaded" }, { status: 400 });
 
-  const stylePrompt = buildStylePrompt();
+  const stylePrompt = buildStylePrompt(project.style_brief);
   let anchorBlobId = project.style_anchor_blob_id;
 
   if (!anchorBlobId) {

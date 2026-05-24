@@ -4,6 +4,7 @@ import { getDb } from "@/lib/db";
 import { RoomUploader } from "@/components/RoomUploader";
 import { GenerateButton } from "@/components/GenerateButton";
 import { DesignGrid } from "@/components/DesignGrid";
+import { StyleBriefCard } from "@/components/StyleBriefCard";
 import { Badge } from "@/components/ui/badge";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function ProjectPage({
   const { id } = await params;
   const db = getDb();
   const project = db
-    .prepare("SELECT id, name, provider FROM projects WHERE id=?")
+    .prepare("SELECT id, name, provider, style_brief FROM projects WHERE id=?")
     .get(id) as any;
   if (!project) notFound();
 
@@ -50,6 +51,14 @@ export default async function ProjectPage({
           <Badge>{project.provider}</Badge>
         </div>
       </div>
+
+      {/* Style brief */}
+      <section className="mb-6">
+        <h2 className="font-serif text-xl font-semibold mb-3 text-[var(--color-foreground)]">
+          Style brief
+        </h2>
+        <StyleBriefCard projectId={id} initial={project.style_brief ?? null} />
+      </section>
 
       {/* Add a room */}
       <section className="mb-6">

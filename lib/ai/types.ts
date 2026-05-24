@@ -2,6 +2,7 @@ export interface RoomInput {
   label: string;
   bytes: Buffer;
   mime: string;
+  hint?: string;
 }
 
 export interface ImageOut {

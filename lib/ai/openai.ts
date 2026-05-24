@@ -57,7 +57,8 @@ export class OpenAIProvider implements DesignProvider {
     const prompt =
       `${stylePrompt}\n` +
       `First image is the style anchor. Second image is the source photo of "${room.label}". ` +
-      `Redesign "${room.label}" matching the anchor's palette and materials exactly.`;
+      `Redesign "${room.label}" matching the anchor's palette and materials exactly.` +
+      (room.hint?.trim() ? `\nAdditional hint for this room: ${room.hint.trim()}` : "");
     const resp = (await c.images.edit({
       model: MODEL,
       image: [anchorFile, roomFile],
