@@ -29,10 +29,21 @@ export class OpenAIProvider implements DesignProvider {
       `Rooms in the home: ${labels}. ` +
       `Render a redesigned interior view of the room labeled "${anchorRoom.label}". ` +
       `Establish a cohesive style that will be applied to every other room.`;
+
+    // gpt-image-1 images.edit accepts an array of images for multi-image input.
+    // Each File must carry a real filename + mime type so the multipart form is well-formed.
     const imageFiles = await Promise.all(
-      rooms.map((r, i) => toFile(r.bytes, `room-${i}.png`, { type: r.mime }))
+      rooms.map((r, i) =>
+        toFile(r.bytes, `room-${i}.${(r.mime.split("/")[1] ?? "png")}`, { type: r.mime })
+      )
     );
-    const resp = await c.images.edit({ model: MODEL, image: imageFiles, prompt, size: "1024x1024" });
+
+    const resp = (await c.images.edit({
+      model: MODEL,
+      image: imageFiles,
+      prompt,
+      size: "1024x1024",
+    })) as { data?: Array<{ b64_json?: string }> };
     return {
       anchor: { bytes: decode(resp.data?.[0]?.b64_json), mime: "image/png" },
       anchorRoomLabel: anchorRoom.label,
@@ -41,24 +52,34 @@ export class OpenAIProvider implements DesignProvider {
 
   async generateRoom(anchor: ImageOut, room: RoomInput, stylePrompt: string): Promise<ImageOut> {
     const c = client();
-    const anchorFile = await toFile(anchor.bytes, "anchor.png", { type: anchor.mime });
-    const roomFile = await toFile(room.bytes, "room.png", { type: room.mime });
+    const anchorFile = await toFile(anchor.bytes, `anchor.${anchor.mime.split("/")[1] ?? "png"}`, { type: anchor.mime });
+    const roomFile = await toFile(room.bytes, `room.${room.mime.split("/")[1] ?? "png"}`, { type: room.mime });
     const prompt =
       `${stylePrompt}\n` +
       `First image is the style anchor. Second image is the source photo of "${room.label}". ` +
       `Redesign "${room.label}" matching the anchor's palette and materials exactly.`;
-    const resp = await c.images.edit({ model: MODEL, image: [anchorFile, roomFile], prompt, size: "1024x1024" });
+    const resp = (await c.images.edit({
+      model: MODEL,
+      image: [anchorFile, roomFile],
+      prompt,
+      size: "1024x1024",
+    })) as { data?: Array<{ b64_json?: string }> };
     return { bytes: decode(resp.data?.[0]?.b64_json), mime: "image/png" };
   }
 
   async editRoom(base: ImageOut, mask: Buffer | null, instruction: string): Promise<ImageOut> {
     const c = client();
-    const baseFile = await toFile(base.bytes, "base.png", { type: base.mime });
-    const args: any = { model: MODEL, image: baseFile, prompt: instruction, size: "1024x1024" };
+    const baseFile = await toFile(base.bytes, `base.${base.mime.split("/")[1] ?? "png"}`, { type: base.mime });
+    const args: Parameters<OpenAI["images"]["edit"]>[0] = {
+      model: MODEL,
+      image: baseFile,
+      prompt: instruction,
+      size: "1024x1024",
+    };
     if (mask) {
-      args.mask = await toFile(mask, "mask.png", { type: "image/png" });
+      (args as any).mask = await toFile(mask, "mask.png", { type: "image/png" });
     }
-    const resp = await c.images.edit(args);
+    const resp = (await c.images.edit(args)) as { data?: Array<{ b64_json?: string }> };
     return { bytes: decode(resp.data?.[0]?.b64_json), mime: "image/png" };
   }
 }
